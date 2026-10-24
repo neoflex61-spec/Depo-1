@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Kalp ve Karanlık — Aşkın Cenazesi</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <div id="stage">
+    <svg id="scene" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="wallGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a1420"/>
+          <stop offset="60%" stop-color="#120c16"/>
+          <stop offset="100%" stop-color="#0a0710"/>
+        </linearGradient>
+        <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2a0f14"/>
+          <stop offset="100%" stop-color="#140608"/>
+        </linearGradient>
+        <radialGradient id="glassGrad" cx="50%" cy="35%" r="75%">
+          <stop offset="0%" stop-color="#4a4a78"/>
+          <stop offset="100%" stop-color="#201c38"/>
+        </radialGradient>
+        <radialGradient id="flameGrad" cx="50%" cy="70%" r="60%">
+          <stop offset="0%" stop-color="#fff3c4"/>
+          <stop offset="55%" stop-color="#ffb347"/>
+          <stop offset="100%" stop-color="#d9531e"/>
+        </radialGradient>
+        <pattern id="damask" width="40" height="40" patternUnits="userSpaceOnUse">
+          <rect width="40" height="40" fill="transparent"/>
+          <path d="M20,2 L38,20 L20,38 L2,20 Z" fill="none" stroke="#3a2a40" stroke-width="1.2"/>
+          <circle cx="20" cy="20" r="3" fill="#3a2a40"/>
+        </pattern>
+        <filter id="softGlow" x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur stdDeviation="4.2" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- ===== BACKGROUND : gothic mansion hall ===== -->
+      <rect class="wall" x="0" y="0" width="360" height="560" fill="url(#wallGrad)"/>
+      <rect x="0" y="0" width="360" height="560" fill="url(#damask)" opacity="0.35"/>
+
+      <!-- cobwebs -->
+      <g class="cobweb" opacity="0.35" stroke="#cfd0d6" stroke-width="1" fill="none">
+        <path d="M0,0 L46,0 M0,0 L0,46 M0,0 L32,32 M16,0 L10,16 M0,16 L16,22"/>
+      </g>
+      <g class="cobweb" opacity="0.3" stroke="#cfd0d6" stroke-width="1" fill="none" transform="translate(360,0) scale(-1,1)">
+        <path d="M0,0 L36,0 M0,0 L0,36 M0,0 L25,25 M12,0 L8,12 M0,12 L13,17"/>
+      </g>
+
+      <!-- ancestor portrait -->
+      <g class="portrait" transform="translate(58,96)">
+        <rect x="-2" y="-2" width="46" height="62" fill="none" stroke="#6b5a2e" stroke-width="3"/>
+        <rect x="0" y="0" width="42" height="58" fill="#17111d"/>
+        <ellipse cx="21" cy="30" rx="13" ry="17" fill="#2a2030"/>
+        <circle class="portrait-eye" cx="16" cy="27" r="1.6" fill="#d8d0c0"/>
+        <circle class="portrait-eye" cx="26" cy="27" r="1.6" fill="#d8d0c0"/>
+      </g>
+
+      <!-- gothic window with moon + bats -->
+      <g class="window">
+        <path d="M122,230 L122,150 L180,72 L238,150 L238,230 Z" fill="#15101a" stroke="#000" stroke-width="3"/>
+        <clipPath id="glassClip">
+          <path d="M134,222 L134,154 L180,94 L226,154 L226,222 Z"/>
+        </clipPath>
+        <g clip-path="url(#glassClip)">
+          <rect x="120" y="80" width="120" height="150" fill="url(#glassGrad)"/>
+          <circle cx="180" cy="148" r="26" fill="#eee7d2" opacity="0.92"/>
+          <circle cx="172" cy="140" r="4" fill="#cfc7ab" opacity="0.6"/>
+          <circle cx="190" cy="158" r="3" fill="#cfc7ab" opacity="0.5"/>
+          <circle cx="188" cy="138" r="2" fill="#cfc7ab" opacity="0.5"/>
+          <g class="bat bat1"><path d="M0,0 Q-9,-9 -16,0 Q-9,-3 0,0 Q9,-3 16,0 Q9,-9 0,0 Z" fill="#0a0810"/></g>
+          <g class="bat bat2"><path d="M0,0 Q-7,-7 -12,0 Q-7,-2 0,0 Q7,-2 12,0 Q7,-7 0,0 Z" fill="#0a0810"/></g>
+        </g>
+        <path d="M134,222 L134,154 L180,94 L226,154 L226,222 Z" fill="none" stroke="#15101a" stroke-width="3"/>
+        <line x1="180" y1="94" x2="180" y2="222" stroke="#15101a" stroke-width="3"/>
+        <line x1="134" y1="178" x2="226" y2="178" stroke="#15101a" stroke-width="3"/>
+      </g>
+
+      <!-- right doorway (for the butler's entrance) -->
+      <g class="door">
+        <rect x="326" y="300" width="34" height="200" fill="#0c0810" stroke="#000" stroke-width="2"/>
+        <line x1="343" y1="300" x2="343" y2="500" stroke="#000" stroke-width="2"/>
+        <circle cx="336" cy="400" r="1.6" fill="#8a7a3a"/>
+        <circle cx="350" cy="400" r="1.6" fill="#8a7a3a"/>
+      </g>
+
+      <!-- candle sconces -->
+      <g class="sconce" transform="translate(52,300)">
+        <rect x="-4" y="0" width="8" height="18" fill="#2b2b2b"/>
+        <circle cx="0" cy="-2" r="7" fill="#3a3a3a" stroke="#000" stroke-width="1"/>
+        <circle class="flame-glow" cx="0" cy="-14" r="20" fill="#ffb347" opacity="0.38" filter="url(#softGlow)"/>
+        <path class="flame" d="M0,-30 C5,-21 5,-11 0,-6 C-5,-11 -5,-21 0,-30 Z" fill="url(#flameGrad)"/>
+      </g>
+      <g class="sconce sconce-b" transform="translate(308,300)">
+        <rect x="-4" y="0" width="8" height="18" fill="#2b2b2b"/>
+        <circle cx="0" cy="-2" r="7" fill="#3a3a3a" stroke="#000" stroke-width="1"/>
+        <circle class="flame-glow" cx="0" cy="-14" r="20" fill="#ffb347" opacity="0.38" filter="url(#softGlow)"/>
+        <path class="flame" d="M0,-30 C5,-21 5,-11 0,-6 C-5,-11 -5,-21 0,-30 Z" fill="url(#flameGrad)"/>
+      </g>
+
+      <!-- floor -->
+      <path d="M0,560 L360,560 L300,640 L60,640 Z" fill="url(#floorGrad)"/>
+      <rect x="0" y="552" width="360" height="8" fill="#17090c"/>
+
+      <!-- ===================== MORGANA ===================== -->
+      <g id="morgana" class="character expr-neutral">
+        <!-- hair back -->
+        <path class="hair-back" d="M213,420 C200,460 198,510 206,552 L218,552 C214,505 215,460 222,428 Z
+                                    M257,420 C270,460 272,510 264,552 L252,552 C256,505 255,460 248,428 Z" fill="#0c0810"/>
+        <!-- gown -->
+        <path class="gown" d="M210,480 C205,510 198,545 196,558 L274,558 C272,545 265,510 260,480
+                               C256,460 214,460 210,480 Z" fill="#2a1030"/>
+        <path class="gown-trim" d="M196,558 L274,558 L270,566 L200,566 Z" fill="#160818"/>
+        <path class="bodice" d="M219,438 C219,460 251,460 251,438 L247,426 L223,426 Z" fill="#20142a" stroke="#4a2050" stroke-width="1.4"/>
+        <!-- neck -->
+        <rect x="228" y="424" width="14" height="14" rx="4" fill="#e9dfd2"/>
+        <!-- arms: default clasped -->
+        <g class="arm-set arm-normal">
+          <path d="M219,440 C205,452 202,466 212,474" fill="none" stroke="#20142a" stroke-width="10" stroke-linecap="round"/>
+          <path d="M251,440 C265,452 268,466 258,474" fill="none" stroke="#20142a" stroke-width="10" stroke-linecap="round"/>
+          <circle cx="235" cy="475" r="7" fill="#e9dfd2"/>
+        </g>
+        <g class="arm-set arm-sassy">
+          <path d="M219,440 C198,448 196,462 206,470" fill="none" stroke="#20142a" stroke-width="10" stroke-linecap="round"/>
+          <path d="M251,440 C262,448 256,462 244,458" fill="none" stroke="#20142a" stroke-width="10" stroke-linecap="round"/>
+          <circle cx="206" cy="470" r="6.5" fill="#e9dfd2"/>
+          <circle cx="244" cy="458" r="6.5" fill="#e9dfd2"/>
+        </g>
+        <!-- head -->
+        <g class="head">
+          <circle cx="235" cy="408" r="21" fill="#ece2d6"/>
+          <path class="hair-front" d="M214,402 C212,384 220,372 235,372 C250,372 258,384 256,402
+                                       C256,392 248,386 235,386 C222,386 214,392 214,402 Z" fill="#0c0810"/>
+          <g class="brows brow-l">
+            <path d="M223,398 q5,-3 10,0" stroke="#0c0810" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="brows brow-r">
+            <path d="M237,398 q5,-3 10,0" stroke="#0c0810" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="eyes">
+            <g class="eye eye-l">
+              <ellipse class="sclera" cx="227" cy="408" rx="4.2" ry="4.6" fill="#f4ece0"/>
+              <circle class="pupil" cx="227" cy="408" r="2.1" fill="#3a1030"/>
+              <rect class="eyelid" x="222" y="403" width="10" height="10" fill="#ece2d6"/>
+            </g>
+            <g class="eye eye-r">
+              <ellipse class="sclera" cx="243" cy="408" rx="4.2" ry="4.6" fill="#f4ece0"/>
+              <circle class="pupil" cx="243" cy="408" r="2.1" fill="#3a1030"/>
+              <rect class="eyelid" x="238" y="403" width="10" height="10" fill="#ece2d6"/>
+            </g>
+          </g>
+          <g class="mouth">
+            <path class="m-neutral" d="M229,419 q6,3 12,0" stroke="#7a1f33" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <path class="m-talk" d="M229,418 q6,8 12,0 q-6,-3 -12,0 Z" fill="#5a1222"/>
+            <path class="m-smug" d="M229,420 q6,-1 12,-4 q-3,6 -12,4 Z" fill="#7a1f33"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- ===================== LUCIEN ===================== -->
+      <g id="lucien" class="character expr-neutral">
+        <!-- back leg / shin on floor -->
+        <path class="leg-back" d="M78,560 L83,537 C85,529 98,526 108,533 L102,553 C94,548 84,550 78,560 Z" fill="#0c0810"/>
+        <!-- coat body (kneeling torso) -->
+        <path class="coat" d="M96,478 C92,500 92,522 98,540 L150,540 C154,520 152,498 146,480
+                               C140,466 102,466 96,478 Z" fill="#160f1d"/>
+        <path class="coat-tail" d="M98,540 C90,548 86,556 84,562 L104,562 C104,554 102,546 100,540 Z" fill="#0c0810"/>
+        <path class="cravat" d="M114,472 L130,472 L126,486 L118,486 Z" fill="#e9dfd2"/>
+        <!-- front knee / shin -->
+        <path class="leg-front" d="M114,538 C107,546 104,554 104,562 L140,562 C140,550 134,541 126,538 Z" fill="#100a16"/>
+        <!-- neck -->
+        <rect x="114" y="458" width="14" height="14" rx="4" fill="#e9dfd2"/>
+        <!-- arm holding rose -->
+        <g class="arm-rose">
+          <path d="M140,480 C156,484 166,498 168,514" fill="none" stroke="#2c2036" stroke-width="10" stroke-linecap="round"/>
+          <circle cx="168" cy="516" r="6.5" fill="#e9dfd2"/>
+          <g class="rose-anchor" transform="translate(168,516)">
+            <g class="rose">
+              <circle cx="0" cy="-6" r="13" fill="#ffb347" opacity="0.22" filter="url(#softGlow)"/>
+              <line x1="0" y1="0" x2="0" y2="18" stroke="#2a4a2c" stroke-width="2.4"/>
+              <path d="M-2,16 q-6,2 -8,8" stroke="#2a4a2c" stroke-width="1.6" fill="none"/>
+              <g class="rose-head">
+                <circle cx="0" cy="-4" r="6.4" fill="#5a1220" stroke="#1a0608" stroke-width="0.8"/>
+                <circle cx="-4" cy="-7" r="4.4" fill="#6e1a28" stroke="#1a0608" stroke-width="0.8"/>
+                <circle cx="4" cy="-7" r="4.4" fill="#6e1a28" stroke="#1a0608" stroke-width="0.8"/>
+                <circle cx="0" cy="-9.5" r="4.4" fill="#8a2234" stroke="#1a0608" stroke-width="0.8"/>
+                <circle cx="-1.4" cy="-10.5" r="1.3" fill="#c23a4e" opacity="0.8"/>
+              </g>
+            </g>
+          </g>
+        </g>
+        <!-- resting arm on knee -->
+        <path class="arm-rest" d="M102,482 C92,492 88,504 92,516" fill="none" stroke="#2c2036" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="92" cy="517" r="6.5" fill="#e9dfd2"/>
+        <!-- head -->
+        <g class="head">
+          <circle cx="121" cy="458" r="20" fill="#ece2d6"/>
+          <path class="hair-back" d="M101,452 C99,440 107,428 121,428 C135,428 143,440 141,452
+                                      C141,468 138,478 132,480 C136,466 134,452 121,450 C108,452 106,466 110,480
+                                      C104,478 101,468 101,452 Z" fill="#0c0810"/>
+          <path class="hair-fringe" d="M104,450 C106,438 112,432 121,432 C130,432 136,438 138,450
+                                        C132,444 126,442 121,442 C114,444 108,444 104,450 Z" fill="#0c0810"/>
+          <path class="hair-strand" d="M121,440 C117,448 115,456 118,462" stroke="#0c0810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <g class="brows brow-l">
+            <path d="M109,448 q5,-3 9,-1" stroke="#0c0810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="brows brow-r">
+            <path d="M124,447 q5,-2 9,1" stroke="#0c0810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="eyes">
+            <g class="eye eye-l">
+              <ellipse class="sclera" cx="113" cy="458" rx="4" ry="4.4" fill="#f4ece0"/>
+              <circle class="pupil" cx="113" cy="458" r="2" fill="#1a2a40"/>
+              <rect class="eyelid" x="108" y="453" width="10" height="10" fill="#ece2d6"/>
+            </g>
+            <g class="eye eye-r">
+              <ellipse class="sclera" cx="129" cy="458" rx="4" ry="4.4" fill="#f4ece0"/>
+              <circle class="pupil" cx="129" cy="458" r="2" fill="#1a2a40"/>
+              <rect class="eyelid" x="124" y="453" width="10" height="10" fill="#ece2d6"/>
+            </g>
+          </g>
+          <g class="mouth">
+            <path class="m-neutral" d="M115,469 q6,2 12,0" stroke="#7a3a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path class="m-talk" d="M115,468 q6,7 12,0 q-6,-3 -12,0 Z" fill="#5a2424"/>
+            <ellipse class="m-shock" cx="121" cy="470" rx="4.4" ry="5.6" fill="#3a1414"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- ===================== SKELETON BUTLER ===================== -->
+      <g id="butler" class="character offstage expr-neutral">
+        <!-- tailcoat -->
+        <path class="tails" d="M274,470 C270,500 268,530 268,558 L278,558 C280,530 282,500 280,474 Z
+                                M306,474 C304,500 306,530 308,558 L318,558 C318,530 316,500 312,470 Z" fill="#0b0b0d"/>
+        <path class="coat" d="M270,440 C266,462 266,484 272,500 L314,500 C320,484 320,462 316,440
+                               C308,428 278,428 270,440 Z" fill="#111113"/>
+        <rect class="shirt" x="286" y="438" width="14" height="40" fill="#e7e4dc"/>
+        <path class="bowtie" d="M286,440 L293,436 L293,444 Z M300,440 L293,436 L293,444 Z" fill="#0b0b0d"/>
+        <!-- legs -->
+        <path class="legs" d="M280,500 L278,558 L290,558 L294,502 Z M294,502 L298,558 L310,558 L306,500 Z" fill="#161618"/>
+        <!-- tray-holding arm -->
+        <path class="arm-tray" d="M270,448 C258,456 252,466 254,476" fill="none" stroke="#3a3a3e" stroke-width="9" stroke-linecap="round"/>
+        <ellipse class="hand" cx="254" cy="478" rx="6" ry="5" fill="#e9e2d0"/>
+        <ellipse class="tray" cx="248" cy="480" rx="13" ry="3.6" fill="#cfd2d6" stroke="#8a8d92" stroke-width="1"/>
+        <!-- other arm -->
+        <path class="arm-side" d="M316,448 C326,458 328,470 322,480" fill="none" stroke="#3a3a3e" stroke-width="9" stroke-linecap="round"/>
+        <ellipse cx="322" cy="482" rx="5.5" ry="5" fill="#e9e2d0"/>
+        <!-- skull -->
+        <g class="head">
+          <circle cx="293" cy="418" r="19" fill="#e9e2d0"/>
+          <path d="M280,420 q13,8 26,0" stroke="#b9b2a0" stroke-width="1.2" fill="none" opacity="0.6"/>
+          <g class="brows">
+            <path d="M282,409 l6,1" stroke="#0b0b0d" stroke-width="2" stroke-linecap="round"/>
+            <path d="M298,410 l6,-1" stroke="#0b0b0d" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <ellipse cx="286" cy="415" rx="4" ry="5.2" fill="#0b0b0d"/>
+          <ellipse cx="300" cy="415" rx="4" ry="5.2" fill="#0b0b0d"/>
+          <path d="M291,420 l2,4 l2,-4 Z" fill="#0b0b0d"/>
+          <path class="jaw-fixed" d="M281,426 q12,5 24,0 l-2,3 l-4,-1 l-4,2 l-4,-2 l-4,2 l-4,-2 l-4,1 Z" fill="#cfc8b4"/>
+          <g class="jaw">
+            <path d="M283,428 q10,6 20,0 l-1,5 l-18,0 Z" fill="#d8d2c0"/>
+            <path d="M286,429 l0,4 M291,430 l0,4.5 M296,429 l0,4" stroke="#8a8370" stroke-width="1"/>
+          </g>
+        </g>
+      </g>
+
+    </svg>
+
+    <!-- atmosphere overlays -->
+    <div id="fogLayer" aria-hidden="true">
+      <div class="fog f1"></div>
+      <div class="fog f2"></div>
+    </div>
+    <div id="particles" aria-hidden="true"></div>
+
+    <!-- subtitles -->
+    <div id="subtitle" aria-live="polite"></div>
+
+    <!-- title card -->
+    <div id="titlecard">
+      <h1>AŞKIN CENAZESİ</h1>
+      <button id="replayBtn" class="hidden" type="button">⟲ Tekrar Oynat</button>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button id="playBtn" type="button" aria-label="Oynat">▶<span>Oynat</span></button>
+    <button id="pauseBtn" type="button" aria-label="Duraklat">⏸<span>Duraklat</span></button>
+    <button id="restartBtn" type="button" aria-label="Baştan başlat">⟲<span>Baştan</span></button>
+    <button id="muteBtn" type="button" aria-label="Sesi kapat" aria-pressed="false">🔊<span>Ses</span></button>
+  </div>
+
+  <p id="caption">Kalp ve Karanlık — Bölüm 1 prototipi</p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

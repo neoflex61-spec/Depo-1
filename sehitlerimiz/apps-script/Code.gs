@@ -15,6 +15,22 @@
  * E-Tablosuna girilecek her satır, kaynağı sizin tarafınızdan elle
  * doğrulanmış olmalıdır.
  *
+ * YETKİLENDİRME KAPSAMI (appsscript.json): oauthScopes listesinde
+ * KASITLI olarak spreadsheets.readonly kullanılır, spreadsheets.currentonly
+ * veya @OnlyCurrentDoc DEĞİL. Sebep: .currentonly/@OnlyCurrentDoc ailesi
+ * yalnızca bir belgenin kendi UI oturumu içinde çalışan kodlar (menü,
+ * kenar çubuğu, onOpen/onEdit basit tetikleyicileri) için geçerlidir —
+ * "bu belge açıkken" anlamına gelir. doGet() ise anonim bir HTTP isteğiyle
+ * tetiklenen bir Web App uç noktasıdır; arkasında "açık bir belge oturumu"
+ * yoktur, bu yüzden .currentonly bu bağlamda honor edilmez ve Apps Script
+ * sessizce tam spreadsheets kapsamına (okuma+yazma+paylaşım) düşer.
+ * spreadsheets.readonly, Web App bağlamında GERÇEKTEN geçerli olan en dar
+ * kapsamdır: yazma/silme/paylaşım yeteneğini tamamen kaldırır. "Yalnızca
+ * bağlı tabloya dokunma" garantisi OAuth kapsam düzeyinde değil, bu
+ * dosyanın kendi mantığından gelir: aşağıda hiçbir yerde openById() veya
+ * başka bir Spreadsheet/Drive dosyasını açan bir çağrı YOKTUR — yalnızca
+ * getActiveSpreadsheet() (bağlı dosya) kullanılır.
+ *
  * Sayfa adı: "Şehitler" (ya da aksansız "Sehitler" de kabul edilir).
  * Beklenen sütun başlıkları (ilk satır, sıra önemli değil):
  *

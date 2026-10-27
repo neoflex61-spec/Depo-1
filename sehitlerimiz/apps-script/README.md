@@ -27,11 +27,13 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
   (veya "Evet") yazan satırlar dışa aktarılır; bu sütunu eklemezseniz,
   tablodaki tüm dolu satırlar zaten elle doğruladığınız varsayılarak
   aktarılır (bkz. aşağıdaki 3. adım).
-- `appsscript.json` manifest dosyası, yetkilendirme kapsamını
-  `spreadsheets.currentonly` ile **yalnızca bağlı olduğu tabloya**
-  sınırlar; `Code.gs` zaten hiçbir Drive çağrısı veya yazma işlemi
-  yapmadığından, bu scriptin dokunabileceği tek veri bu tek tablonun
-  okunmasıdır (bkz. aşağıdaki "Yetkilendirme kapsamını daraltma").
+- `appsscript.json` manifest dosyası, yetkilendirme kapsamını açıkça
+  `spreadsheets.readonly` olarak sınırlar — yazma/silme/paylaşım
+  yeteneğini tamamen kaldırır. "Yalnızca bu tabloya dokunma" garantisi
+  OAuth kapsamından değil, `Code.gs`'in kendi mantığından gelir: dosya
+  hiçbir zaman `openById()` veya `DriveApp` çağırmaz, yalnızca
+  `getActiveSpreadsheet()` (bağlı dosya) kullanır (bkz. aşağıdaki
+  "Yetkilendirme kapsamı: neden readonly, neden currentonly değil").
 
 ## Kurulum adımları
 
@@ -66,21 +68,20 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
 4. Üstteki menüden **Uzantılar → Apps Script** açın.
 5. Açılan projede `Code.gs` dosyasının içeriğini bu klasördeki
    `Code.gs` dosyasıyla değiştirin.
-6. **(Önerilir) Yetkilendirme kapsamını daraltın** — bkz. aşağıdaki
-   "Yetkilendirme kapsamını daraltma (OAuth scope)" bölümü. Bunu
-   yapmazsanız Google'ın izin ekranı "tüm Google E-Tablolar
+6. **(Önerilir) Manifesti uygulayın** — bkz. aşağıdaki "Yetkilendirme
+   kapsamı: neden readonly, neden currentonly değil" bölümü. Bunu
+   atlarsanız Google'ın izin ekranı "tüm Google E-Tablolar
    dosyalarınızı görüntüleme, düzenleme, oluşturma ve silme" gibi
-   gereğinden geniş bir izin ister; bu adım onu yalnızca bu tabloyla
-   sınırlar.
+   gereğinden geniş bir izin ister.
 7. **Dağıt → Yeni Dağıtım** deyin:
    - Tür: **Web Uygulaması**
    - Yürütülecek kullanıcı hesabı: **Ben (siz)**
    - Erişim yetkisi olanlar: **Herkes**
 8. "Dağıt" butonuna basın, Google'ın izin ekranını onaylayın. 6. adımı
-   uyguladıysanız ekranda yalnızca "bu uygulamanın yüklü olduğu Google
-   E-Tablolar dosyalarını görüntüleme ve yönetme" yazar — "tüm
-   tablolarınız" ifadesi görünmez. Hesap bilgileriniz hiçbir yere
-   gönderilmez.
+   uyguladıysanız ekranda **yalnızca "Tüm Google E-Tablolar
+   elektronik tablolarınızı görüntüleme"** yazar — "değiştirme",
+   "oluşturma", "silme" veya "paylaşma" ifadeleri görünmez. Hesap
+   bilgileriniz hiçbir yere gönderilmez.
 9. Üretilen `https://script.google.com/macros/s/.../exec` adresini
    kopyalayın.
 10. Bu adresi sitenin `../js/config.js` dosyasındaki `apiUrl` alanına
@@ -96,7 +97,7 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
     sunucu yeniden başlatma gerekmez, sadece dosyayı güncelleyip
     yayına alın).
 
-## Yetkilendirme kapsamını daraltma (OAuth scope)
+## Yetkilendirme kapsamı: neden readonly, neden currentonly değil
 
 **Sorun:** Apps Script, kodunuzda hangi Google servislerinin
 kullanıldığını otomatik tespit edip buna göre bir yetki (OAuth scope)
@@ -105,16 +106,34 @@ istiyor. `Code.gs` yalnızca `SpreadsheetApp.getActiveSpreadsheet()`
 şey yazmıyor — ama açık bir manifest olmadan Apps Script otomatik
 olarak en geniş `https://www.googleapis.com/auth/spreadsheets` kapsamını
 ister. Google'ın izin ekranında bu, tam olarak **"Tüm Google Sheets
-elektronik tablolarınızı görüntüleme, düzenleme, oluşturma ve silme"**
-şeklinde görünür — oysa script yalnızca **bağlı olduğu tek tabloyu**
-okuyor.
+elektronik tablolarınızı görüntüleme, değiştirme ve paylaşma"**
+şeklinde görünür.
 
-**Çözüm:** Bu klasördeki `appsscript.json` dosyası, kapsamı açıkça
-`https://www.googleapis.com/auth/spreadsheets.currentonly` olarak
-sınırlıyor. Bu, "Apps Script'in yalnızca kurulu olduğu tabloyu
-görüntüleyip yönetmesine izin ver" anlamına gelir — diğer hiçbir
-Google Sheets veya Drive dosyasına erişim istenmez, ve script zaten
-hiçbir yere yazmadığı için pratikte yalnızca okuma yapar.
+**İlk denediğimiz `spreadsheets.currentonly` neden işe yaramadı:**
+Bu kapsam ailesi (ve onu üreten `@OnlyCurrentDoc` ek açıklaması)
+yalnızca bir belgenin **kendi UI oturumu içinde çalışan kodlar** için
+geçerlidir — özel menüler, kenar çubukları, `onOpen`/`onEdit` gibi
+basit tetikleyiciler. Anlamı tam olarak "bu belge **açıkken** çalıştır".
+Ama `doGet()` bir **Web App uç noktasıdır**: internetten gelen anonim
+bir HTTP isteğiyle tetiklenir, arkasında "şu an açık bir belge" diye
+bir şey yoktur. Bu yüzden Apps Script, Web App bağlamında
+`.currentonly`'yi honor edemez ve manifestte ne yazarsanız yazın
+sessizce tam `spreadsheets` kapsamına düşer — gördüğünüz
+"görüntüleme, değiştirme ve paylaşma" ifadesi budur. `@OnlyCurrentDoc`
+eklemek de yardımcı olmaz: hem `oauthScopes` zaten açıkça
+tanımlandığından otomatik tespit hiç çalışmaz, hem de çalışsaydı
+ürettiği kapsam yine aynı nedenle Web App'te geçersiz kalırdı.
+
+**Çözüm — `spreadsheets.readonly`:** Web App bağlamında **gerçekten
+geçerli olan** en dar kapsam budur. Google'ın resmi açıklaması: *"Tüm
+Google E-Tablolar elektronik tablolarınızı görüntüleme"* — "değiştirme"
+veya "paylaşma" ifadesi yoktur, çünkü bu kapsam yazma/silme/paylaşım
+yeteneğini tamamen kaldırır. Dürüst olmak gerekirse bu kapsam "yalnızca
+bu tabloya" kısıtlamasını *sağlamaz* (Web App bağlamında bu seviyede
+hiçbir OAuth kapsamı bunu sağlayamaz); "yalnızca bağlı tabloya
+dokunma" garantisi `Code.gs`'in kendi kodundan gelir — dosya hiçbir
+zaman `openById()` çağırmaz, yalnızca `getActiveSpreadsheet()` (bağlı
+dosya) kullanır.
 
 Adımlar:
 
@@ -136,16 +155,16 @@ Adımlar:
      "exceptionLogging": "STACKDRIVER",
      "runtimeVersion": "V8",
      "oauthScopes": [
-       "https://www.googleapis.com/auth/spreadsheets.currentonly"
+       "https://www.googleapis.com/auth/spreadsheets.readonly"
      ]
    }
    ```
 
 5. Kaydedin (disket simgesi).
 6. Üstteki fonksiyon açılır menüsünden **`doGet`**'i seçip **▶ Çalıştır**'a
-   basın. Bu, yeni ve dar kapsamlı izin ekranını hemen tetikler —
-   metnin artık "tüm tablolarınız" değil, yalnızca bu tabloyla ilgili
-   olduğunu burada görüp onaylayabilirsiniz.
+   basın. Bu, yeni izin ekranını hemen tetikler — metnin yalnızca
+   "görüntüleme" dediğini, "değiştirme" veya "paylaşma" ifadesi
+   içermediğini burada görüp onaylayabilirsiniz.
 
 **Daha önce geniş kapsamla zaten yetkilendirdiyseniz:** Google, bir
 scripte verilen izni kapsam daraldığında otomatik geri çekmez; eski
@@ -184,8 +203,16 @@ değişikliği veya yeniden dağıtım gerekmez.
   eşleşmemesi, Şehadet Tarihi'nin tanınan üç biçimden birinde olmaması
   veya (sütun eklediyseniz) Doğrulama Durumu'nun tam olarak "Doğrulandı"
   yazmaması.
-- Kapsamı daralttıktan sonra site birden "Beklenmeyen hata" veya boş
+- Kapsamı değiştirdikten sonra site birden "Beklenmeyen hata" veya boş
   veri dönüyorsa, Apps Script editöründe `doGet`'i elle **▶ Çalıştır**ıp
   bir yetkilendirme hatası çıkıp çıkmadığını kontrol edin; çıkarsa izin
-  ekranını onaylamanız yeterlidir (bkz. "Yetkilendirme kapsamını
-  daraltma" bölümü, 6. adım).
+  ekranını onaylamanız yeterlidir (bkz. "Yetkilendirme kapsamı: neden
+  readonly, neden currentonly değil" bölümü, 6. adım).
+- İzin ekranında hâlâ "değiştirme" veya "paylaşma" ifadesi görüyorsanız
+  (manifestiniz `spreadsheets.readonly` olsa bile), olası nedenler:
+  (a) daha önce verilmiş geniş bir yetkilendirme hâlâ hesabınızda kayıtlı
+  — aşağıdaki "Daha önce geniş kapsamla..." adımlarıyla temizleyin;
+  (b) Apps Script editöründe **Hizmetler (⊕)** altına "Google Sheets API"
+  veya "Drive API" gibi bir Gelişmiş Servis eklenmiş olabilir — kullanılmıyorsa
+  kaldırın; (c) projede `Code.gs` dışında, daha geniş erişim isteyen başka
+  bir dosya olabilir.

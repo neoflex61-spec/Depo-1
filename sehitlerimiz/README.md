@@ -38,7 +38,7 @@ sehitlerimiz/
 ├── tools/csv_to_json.py         CSV → data/sehitler.json dönüştürme/doğrulama aracı
 └── apps-script/                 Google Sheets canlı entegrasyonu
     ├── Code.gs                   Salt-okunur doGet uç noktası
-    ├── appsscript.json           Dar OAuth kapsamı (spreadsheets.currentonly)
+    ├── appsscript.json           Dar OAuth kapsamı (spreadsheets.readonly)
     └── README.md                 Kurulum + yetkilendirme daraltma rehberi
 ```
 
@@ -184,11 +184,15 @@ otomatik güncel okunur).
   (elle, satır satır doğrulama ile) yapılır — hiçbir zaman sitenin
   kendisi üzerinden.
 - `apps-script/appsscript.json`, Apps Script'in Google'dan istediği
-  yetkiyi `spreadsheets.currentonly` ile **yalnızca scriptin bağlı
-  olduğu tek tabloya** daraltır; `Code.gs` zaten Drive'a dokunmuyor ve
-  hiçbir yere yazmıyor, bu yüzden pratikte yalnızca o tek tablonun
-  okunmasına izin verilmiş olur (bkz. `apps-script/README.md` →
-  "Yetkilendirme kapsamını daraltma").
+  yetkiyi `spreadsheets.readonly` ile sınırlar — yazma/silme/paylaşım
+  yeteneği tamamen kalkar. (`spreadsheets.currentonly`/`@OnlyCurrentDoc`
+  bilinçli olarak kullanılmıyor: bu kapsam ailesi yalnızca bir belgenin
+  kendi UI oturumunda çalışan kodlar için geçerlidir, `doGet()` gibi bir
+  Web App uç noktasında honor edilmez.) "Yalnızca bağlı tabloya dokunma"
+  garantisi OAuth kapsamından değil, `Code.gs`'in `openById()`/`DriveApp`
+  hiç kullanmayıp yalnızca bağlı dosyayı (`getActiveSpreadsheet()`)
+  okuyan kendi mantığından gelir (bkz. `apps-script/README.md` →
+  "Yetkilendirme kapsamı: neden readonly, neden currentonly değil").
 
 ## Kapsam ve veri bütünlüğü ilkeleri
 

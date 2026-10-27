@@ -38,7 +38,7 @@ sehitlerimiz/
 ├── tools/csv_to_json.py         CSV → data/sehitler.json dönüştürme/doğrulama aracı
 └── apps-script/                 Google Sheets canlı entegrasyonu
     ├── Code.gs                   Salt-okunur doGet uç noktası
-    ├── appsscript.json           Dar OAuth kapsamı (spreadsheets.readonly)
+    ├── appsscript.json           Dar OAuth kapsamı (spreadsheets.currentonly)
     └── README.md                 Kurulum + yetkilendirme daraltma rehberi
 ```
 
@@ -184,15 +184,19 @@ otomatik güncel okunur).
   (elle, satır satır doğrulama ile) yapılır — hiçbir zaman sitenin
   kendisi üzerinden.
 - `apps-script/appsscript.json`, Apps Script'in Google'dan istediği
-  yetkiyi `spreadsheets.readonly` ile sınırlar — yazma/silme/paylaşım
-  yeteneği tamamen kalkar. (`spreadsheets.currentonly`/`@OnlyCurrentDoc`
-  bilinçli olarak kullanılmıyor: bu kapsam ailesi yalnızca bir belgenin
-  kendi UI oturumunda çalışan kodlar için geçerlidir, `doGet()` gibi bir
-  Web App uç noktasında honor edilmez.) "Yalnızca bağlı tabloya dokunma"
-  garantisi OAuth kapsamından değil, `Code.gs`'in `openById()`/`DriveApp`
-  hiç kullanmayıp yalnızca bağlı dosyayı (`getActiveSpreadsheet()`)
-  okuyan kendi mantığından gelir (bkz. `apps-script/README.md` →
-  "Yetkilendirme kapsamı: neden readonly, neden currentonly değil").
+  yetkiyi `spreadsheets.currentonly` ile sınırlar; `Code.gs`'in başında
+  da resmî `@OnlyCurrentDoc` ek açıklaması tanımlıdır. Bu kapsamın
+  belgelenmiş kısıtlaması `openById()` ile başka dosya açamamak ve
+  Gelişmiş Servis kullanamamaktır — `Code.gs` ikisini de hiç yapmıyor,
+  yalnızca `getActiveSpreadsheet()` (bağlı dosya) kullanıyor. "Yalnızca
+  bağlı tabloya dokunma" garantisi zaten OAuth kapsamından değil,
+  `Code.gs`'in kendi mantığından gelir. Bu kapsamın bir Web App
+  bağlamında beklendiği gibi dar bir izin ürettiği depo içinde
+  doğrulanmamıştır (resmî kaynaklar bunu web app'e özel teyit etmiyor);
+  kurulum sonrası temiz bir testle gerçek sonucu görmeniz gerekir —
+  dar bir izin üretmezse, bu projede test edilip doğrulanmış
+  `spreadsheets.readonly` alternatifine geçilebilir (bkz.
+  `apps-script/README.md` → "Yetkilendirme kapsamı").
 
 ## Kapsam ve veri bütünlüğü ilkeleri
 

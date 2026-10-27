@@ -1,4 +1,15 @@
 /**
+ * @OnlyCurrentDoc
+ *
+ * Bu ek açıklama, Apps Script'e bu dosyanın yalnızca bağlı olduğu
+ * tabloya (getActiveSpreadsheet() ile) eriştiğini, başka hiçbir
+ * Google Sheets/Drive dosyasını açmadığını bildirir. appsscript.json
+ * içindeki oauthScopes zaten açıkça spreadsheets.currentonly olarak
+ * ayarlı; bu ek açıklama onunla tutarlıdır ve resmi önerilen eştir
+ * (bkz. apps-script/README.md → "Yetkilendirme kapsamı").
+ */
+
+/**
  * ŞEHİTLERİMİZ — Google Apps Script veri uç noktası.
  *
  * Bu dosya Google Sheets dosyanıza bağlı bir Apps Script projesine
@@ -16,20 +27,26 @@
  * doğrulanmış olmalıdır.
  *
  * YETKİLENDİRME KAPSAMI (appsscript.json): oauthScopes listesinde
- * KASITLI olarak spreadsheets.readonly kullanılır, spreadsheets.currentonly
- * veya @OnlyCurrentDoc DEĞİL. Sebep: .currentonly/@OnlyCurrentDoc ailesi
- * yalnızca bir belgenin kendi UI oturumu içinde çalışan kodlar (menü,
- * kenar çubuğu, onOpen/onEdit basit tetikleyicileri) için geçerlidir —
- * "bu belge açıkken" anlamına gelir. doGet() ise anonim bir HTTP isteğiyle
- * tetiklenen bir Web App uç noktasıdır; arkasında "açık bir belge oturumu"
- * yoktur, bu yüzden .currentonly bu bağlamda honor edilmez ve Apps Script
- * sessizce tam spreadsheets kapsamına (okuma+yazma+paylaşım) düşer.
- * spreadsheets.readonly, Web App bağlamında GERÇEKTEN geçerli olan en dar
- * kapsamdır: yazma/silme/paylaşım yeteneğini tamamen kaldırır. "Yalnızca
- * bağlı tabloya dokunma" garantisi OAuth kapsam düzeyinde değil, bu
- * dosyanın kendi mantığından gelir: aşağıda hiçbir yerde openById() veya
- * başka bir Spreadsheet/Drive dosyasını açan bir çağrı YOKTUR — yalnızca
- * getActiveSpreadsheet() (bağlı dosya) kullanılır.
+ * spreadsheets.currentonly kullanılır + yukarıdaki @OnlyCurrentDoc.
+ * currentonly'nin belgelenmiş kısıtlaması şudur: openById()/openByUrl()
+ * ile BAŞKA bir dosya açamazsınız ve Gelişmiş Google Servisleri
+ * (Sheets API, Drive API vb.) bu kapsamla çalışmaz — ama
+ * getActiveSpreadsheet() gibi "bağlı dosyayı" okuyan çağrılar
+ * desteklenir. Bu dosyada openById() veya herhangi bir Gelişmiş Servis
+ * YOKTUR — yalnızca getActiveSpreadsheet() kullanılır — yani kod bu
+ * kısıtlamalarla tam uyumludur.
+ *
+ * ÖNEMLİ DÜRÜSTLÜK NOTU: Bu kapsamın bir Web App (doGet) bağlamında,
+ * UI'dan tetiklenen basit tetikleyicilerdeki kadar güvenilir biçimde
+ * daraldığı resmi Google kaynaklarınca ayrıca teyit edilmiş değildir;
+ * konuyla ilgili topluluk kaynakları da bunu kesin doğrulamıyor. Bu
+ * yüzden kurulumdan sonra MUTLAKA apps-script/README.md'deki temiz
+ * yetkilendirme testini uygulayıp Google'ın izin ekranında gerçekte ne
+ * yazdığını doğrulayın. Beklenenden geniş bir izin çıkarsa (bkz. README
+ * "Eğer currentonly yine de dar bir izin üretmezse"), kapsamı
+ * spreadsheets.readonly'ye geri almanız önerilir — bu, daha önce bu
+ * projede test edilip Web App bağlamında doğrulanmış çalışan bir
+ * alternatiftir.
  *
  * Sayfa adı: "Şehitler" (ya da aksansız "Sehitler" de kabul edilir).
  * Beklenen sütun başlıkları (ilk satır, sıra önemli değil):

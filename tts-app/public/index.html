@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sinematik Sesli Anlatım</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Sinematik Sesli Anlatım</h1>
+      <p class="sub">Türkçe metni derin, tok bir erkek sesiyle MP3'e dönüştür</p>
+    </header>
+
+    <section class="card">
+      <label for="text">Metin</label>
+      <textarea id="text" rows="8" maxlength="5000" placeholder="Seslendirilecek Türkçe metni buraya yazın..."></textarea>
+      <div class="charcount"><span id="charcount">0</span> / 5000</div>
+
+      <label for="voice">Ses</label>
+      <select id="voice"></select>
+
+      <label for="model">Model</label>
+      <select id="model">
+        <option value="multilingual" selected>Kaliteli (eleven_multilingual_v2)</option>
+        <option value="turbo">Hızlı / Düşük kredi (eleven_turbo_v2_5)</option>
+      </select>
+
+      <label for="speed">Hız: <span id="speedVal">1.00</span>x</label>
+      <input type="range" id="speed" min="0.7" max="1.2" step="0.05" value="1.0" />
+
+      <details class="advanced">
+        <summary>Gelişmiş ayarlar</summary>
+        <label for="stability">Kararlılık (stability): <span id="stabilityVal">0.50</span></label>
+        <input type="range" id="stability" min="0" max="1" step="0.05" value="0.5" />
+
+        <label for="similarity">Benzerlik (similarity boost): <span id="similarityVal">0.75</span></label>
+        <input type="range" id="similarity" min="0" max="1" step="0.05" value="0.75" />
+      </details>
+
+      <button id="generate" type="button">Ses Üret</button>
+
+      <p id="status" class="status" role="status"></p>
+
+      <div id="player" class="player hidden">
+        <audio id="audio" controls></audio>
+        <a id="download" class="download" href="#" download="ses.mp3">MP3 indir</a>
+      </div>
+    </section>
+
+    <footer>
+      <p>API anahtarı yalnızca sunucu tarafında saklanır; bu sayfa hiçbir zaman anahtarı görmez.</p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

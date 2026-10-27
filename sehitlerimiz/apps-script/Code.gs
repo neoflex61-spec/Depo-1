@@ -32,6 +32,9 @@
  *   kayıtları girin.
  * - "Dönem" sütunu (örn. "Güncel Dönem", "1853-1928 Dönemi") tarihsel
  *   ve güncel kayıt gruplarının birbirine karışmaması için tutulur.
+ *   Veri minimizasyonu gereği yalnızca meta.kapsam alanında
+ *   toplulaştırılmış özet olarak dışa aktarılır; her kayıtta tek tek
+ *   tekrarlanmaz (site zaten bunu satır bazında kullanmıyor).
  * - Ad Soyad, Şehadet Tarihi veya Memleket boş olan satırlar her zaman
  *   atlanır (eksik/boş kayıt sessizce yayınlanmaz).
  */
@@ -126,11 +129,15 @@ function doGet(e) {
       var donem = sutunlar.donem > -1 ? (satir[sutunlar.donem] || "").toString().trim() : "";
       if (donem) donemler[donem] = true;
 
+      // Veri minimizasyonu: "Dönem" bilgisi yalnızca aşağıdaki
+      // meta.kapsam alanında, toplulaştırılmış tek bir özet metni olarak
+      // dışa aktarılır. Site hiçbir kayıtta "donem" alanını tek tek
+      // kullanmadığından, her satırda tekrarlanan gereksiz bir sütun
+      // olarak herkese açık uca taşınmaz.
       kayitlar.push({
         adSoyad: ad,
         sehadetTarihi: tarih,
-        memleket: il,
-        donem: donem || null
+        memleket: il
       });
     }
 
@@ -148,10 +155,16 @@ function doGet(e) {
       atlananSatirSayisi: atlananSayisi
     });
   } catch (hata) {
+    // Ham istisna mesajı herkese açık, kimlik doğrulaması olmayan bu uca
+    // ASLA döndürülmez (iç uygulama/çalışma zamanı detayı sızdırabilir).
+    // Tanılama için yalnızca Apps Script'in kendi Yürütme Günlüğü'ne
+    // (Executions / Stackdriver) yazılır — bunu yalnızca proje sahibi,
+    // kendi Apps Script editöründen görebilir.
+    console.error("doGet beklenmeyen hata: " + hata.message);
     return jsonCikti({
       meta: { durum: "veri_bekleniyor", kaynak: null, kapsam: null, sonGuncelleme: null, toplamKayit: 0 },
       kayitlar: [],
-      hata: "Beklenmeyen hata: " + hata.message
+      hata: "Beklenmeyen bir hata oluştu. Ayrıntılar için Apps Script projenizdeki Yürütme Günlüğü'nü (Executions) kontrol edin."
     });
   }
 }

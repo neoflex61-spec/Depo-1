@@ -27,6 +27,11 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
   (veya "Evet") yazan satırlar dışa aktarılır; bu sütunu eklemezseniz,
   tablodaki tüm dolu satırlar zaten elle doğruladığınız varsayılarak
   aktarılır (bkz. aşağıdaki 3. adım).
+- `appsscript.json` manifest dosyası, yetkilendirme kapsamını
+  `spreadsheets.currentonly` ile **yalnızca bağlı olduğu tabloya**
+  sınırlar; `Code.gs` zaten hiçbir Drive çağrısı veya yazma işlemi
+  yapmadığından, bu scriptin dokunabileceği tek veri bu tek tablonun
+  okunmasıdır (bkz. aşağıdaki "Yetkilendirme kapsamını daraltma").
 
 ## Kurulum adımları
 
@@ -61,27 +66,101 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
 4. Üstteki menüden **Uzantılar → Apps Script** açın.
 5. Açılan projede `Code.gs` dosyasının içeriğini bu klasördeki
    `Code.gs` dosyasıyla değiştirin.
-6. **Dağıt → Yeni Dağıtım** deyin:
+6. **(Önerilir) Yetkilendirme kapsamını daraltın** — bkz. aşağıdaki
+   "Yetkilendirme kapsamını daraltma (OAuth scope)" bölümü. Bunu
+   yapmazsanız Google'ın izin ekranı "tüm Google E-Tablolar
+   dosyalarınızı görüntüleme, düzenleme, oluşturma ve silme" gibi
+   gereğinden geniş bir izin ister; bu adım onu yalnızca bu tabloyla
+   sınırlar.
+7. **Dağıt → Yeni Dağıtım** deyin:
    - Tür: **Web Uygulaması**
    - Yürütülecek kullanıcı hesabı: **Ben (siz)**
    - Erişim yetkisi olanlar: **Herkes**
-7. "Dağıt" butonuna basın, Google'ın izin ekranını onaylayın (bu, sadece
-   kendi tablonuzu okuma izni verir; hesap bilgilerinizi hiçbir yere
-   göndermez).
-8. Üretilen `https://script.google.com/macros/s/.../exec` adresini
+8. "Dağıt" butonuna basın, Google'ın izin ekranını onaylayın. 6. adımı
+   uyguladıysanız ekranda yalnızca "bu uygulamanın yüklü olduğu Google
+   E-Tablolar dosyalarını görüntüleme ve yönetme" yazar — "tüm
+   tablolarınız" ifadesi görünmez. Hesap bilgileriniz hiçbir yere
+   gönderilmez.
+9. Üretilen `https://script.google.com/macros/s/.../exec` adresini
    kopyalayın.
-9. Bu adresi sitenin `../js/config.js` dosyasındaki `apiUrl` alanına
-   yapıştırın:
+10. Bu adresi sitenin `../js/config.js` dosyasındaki `apiUrl` alanına
+    yapıştırın:
 
-   ```js
-   window.SEHITLERIMIZ_CONFIG = {
-     apiUrl: "https://script.google.com/macros/s/XXXXXXXXXXXX/exec"
-   };
-   ```
+    ```js
+    window.SEHITLERIMIZ_CONFIG = {
+      apiUrl: "https://script.google.com/macros/s/XXXXXXXXXXXX/exec"
+    };
+    ```
 
-10. Siteyi yeniden yayınlayın (statik dosyaları değiştirdiğiniz için
+11. Siteyi yeniden yayınlayın (statik dosyaları değiştirdiğiniz için
     sunucu yeniden başlatma gerekmez, sadece dosyayı güncelleyip
     yayına alın).
+
+## Yetkilendirme kapsamını daraltma (OAuth scope)
+
+**Sorun:** Apps Script, kodunuzda hangi Google servislerinin
+kullanıldığını otomatik tespit edip buna göre bir yetki (OAuth scope)
+istiyor. `Code.gs` yalnızca `SpreadsheetApp.getActiveSpreadsheet()`
+çağırıyor — başka hiçbir tabloyu açmıyor, Drive'a dokunmuyor, hiçbir
+şey yazmıyor — ama açık bir manifest olmadan Apps Script otomatik
+olarak en geniş `https://www.googleapis.com/auth/spreadsheets` kapsamını
+ister. Google'ın izin ekranında bu, tam olarak **"Tüm Google Sheets
+elektronik tablolarınızı görüntüleme, düzenleme, oluşturma ve silme"**
+şeklinde görünür — oysa script yalnızca **bağlı olduğu tek tabloyu**
+okuyor.
+
+**Çözüm:** Bu klasördeki `appsscript.json` dosyası, kapsamı açıkça
+`https://www.googleapis.com/auth/spreadsheets.currentonly` olarak
+sınırlıyor. Bu, "Apps Script'in yalnızca kurulu olduğu tabloyu
+görüntüleyip yönetmesine izin ver" anlamına gelir — diğer hiçbir
+Google Sheets veya Drive dosyasına erişim istenmez, ve script zaten
+hiçbir yere yazmadığı için pratikte yalnızca okuma yapar.
+
+Adımlar:
+
+1. Apps Script editöründe, sol alttaki **dişli (⚙) Proje Ayarları**
+   simgesine dokunun.
+2. **"appsscript.json manifest dosyasını düzenleyicide göster"**
+   kutucuğunu işaretleyin.
+3. Soldaki dosya listesine geri dönün (**< Düzenleyici**), artık
+   görünen **`appsscript.json`** dosyasını açın.
+4. İçindeki her şeyi silip bu klasördeki `appsscript.json` dosyasının
+   içeriğini yapıştırın (aşağıda). Projenizde zaten bir `"webapp"`
+   anahtarı varsa (daha önce dağıtım yaptıysanız olabilir) onu
+   **silmeyin**, yalnızca `"oauthScopes"` dizisini ekleyin/değiştirin:
+
+   ```json
+   {
+     "timeZone": "Europe/Istanbul",
+     "dependencies": {},
+     "exceptionLogging": "STACKDRIVER",
+     "runtimeVersion": "V8",
+     "oauthScopes": [
+       "https://www.googleapis.com/auth/spreadsheets.currentonly"
+     ]
+   }
+   ```
+
+5. Kaydedin (disket simgesi).
+6. Üstteki fonksiyon açılır menüsünden **`doGet`**'i seçip **▶ Çalıştır**'a
+   basın. Bu, yeni ve dar kapsamlı izin ekranını hemen tetikler —
+   metnin artık "tüm tablolarınız" değil, yalnızca bu tabloyla ilgili
+   olduğunu burada görüp onaylayabilirsiniz.
+
+**Daha önce geniş kapsamla zaten yetkilendirdiyseniz:** Google, bir
+scripte verilen izni kapsam daraldığında otomatik geri çekmez; eski
+geniş yetkilendirme hesabınızda kayıtlı kalabilir. Temiz bir sonuç için:
+
+1. Telefonunuzda `myaccount.google.com/permissions` adresini açın
+   (Google Hesabım → Güvenlik → Üçüncü taraf erişimi olan uygulamalar).
+2. Bu Apps Script projesini bulup **erişimi kaldırın**.
+3. Apps Script editörüne dönüp 6. adımı (doGet'i çalıştırma) tekrar
+   yapın — bu sefer temiz, dar kapsamlı izin ekranı çıkacaktır.
+4. **Dağıt → Dağıtımları Yönet** açın, mevcut dağıtımın yanındaki kalem
+   (düzenle) simgesine dokunun, **Sürüm: Yeni sürüm** seçip **Dağıt**'a
+   basın. Bu, mevcut `/exec` URL'nizi **değiştirmez** — `js/config.js`'i
+   tekrar güncellemenize gerek kalmaz, sadece yeni (dar) yetkiyle
+   çalışan bir sürüm yayınlanır.
 
 ## Veriyi güncelleme
 
@@ -94,7 +173,7 @@ değişikliği veya yeniden dağıtım gerekmez.
 - Site veri çekemiyorsa (konsolda hata görürseniz), tarayıcı önce
   `apiUrl`'i deneyip başarısız olursa otomatik olarak `../data/sehitler.json`
   yerel dosyasına döner — bu yüzden site asla tamamen bozulmaz.
-- "Yetkisiz" hatası alıyorsanız 6. adımdaki erişim ayarının **Herkes**
+- "Yetkisiz" hatası alıyorsanız 7. adımdaki erişim ayarının **Herkes**
   olduğunu doğrulayın.
 - Apps Script uç noktasını tarayıcıda doğrudan açıp JSON çıktısını
   inceleyebilirsiniz; `hata` alanı doluysa (örn. "'Şehitler' adlı bir
@@ -105,3 +184,8 @@ değişikliği veya yeniden dağıtım gerekmez.
   eşleşmemesi, Şehadet Tarihi'nin tanınan üç biçimden birinde olmaması
   veya (sütun eklediyseniz) Doğrulama Durumu'nun tam olarak "Doğrulandı"
   yazmaması.
+- Kapsamı daralttıktan sonra site birden "Beklenmeyen hata" veya boş
+  veri dönüyorsa, Apps Script editöründe `doGet`'i elle **▶ Çalıştır**ıp
+  bir yetkilendirme hatası çıkıp çıkmadığını kontrol edin; çıkarsa izin
+  ekranını onaylamanız yeterlidir (bkz. "Yetkilendirme kapsamını
+  daraltma" bölümü, 6. adım).

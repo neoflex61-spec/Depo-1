@@ -36,7 +36,10 @@ sehitlerimiz/
 │                                 (başlangıçta "veri_bekleniyor" durumunda, boş)
 ├── data/sehitler.ornek_sablon.csv  CSV içe aktarma şablonu (sadece başlık satırı)
 ├── tools/csv_to_json.py         CSV → data/sehitler.json dönüştürme/doğrulama aracı
-└── apps-script/                 Google Sheets canlı entegrasyonu (Code.gs + rehber)
+└── apps-script/                 Google Sheets canlı entegrasyonu
+    ├── Code.gs                   Salt-okunur doGet uç noktası
+    ├── appsscript.json           Dar OAuth kapsamı (spreadsheets.currentonly)
+    └── README.md                 Kurulum + yetkilendirme daraltma rehberi
 ```
 
 ## Veri modeli
@@ -180,6 +183,12 @@ otomatik güncel okunur).
   (sahibinin hesabıyla) ya da bu depodaki CSV dönüştürme aracıyla
   (elle, satır satır doğrulama ile) yapılır — hiçbir zaman sitenin
   kendisi üzerinden.
+- `apps-script/appsscript.json`, Apps Script'in Google'dan istediği
+  yetkiyi `spreadsheets.currentonly` ile **yalnızca scriptin bağlı
+  olduğu tek tabloya** daraltır; `Code.gs` zaten Drive'a dokunmuyor ve
+  hiçbir yere yazmıyor, bu yüzden pratikte yalnızca o tek tablonun
+  okunmasına izin verilmiş olur (bkz. `apps-script/README.md` →
+  "Yetkilendirme kapsamını daraltma").
 
 ## Kapsam ve veri bütünlüğü ilkeleri
 

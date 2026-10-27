@@ -5,6 +5,13 @@ olarak okumasını sağlayan **isteğe bağlı** entegrasyonu içerir. Bu yönte
 kullanmak istemiyorsanız `../tools/csv_to_json.py` ile CSV içe aktarma
 yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
 
+> **Önemli — otomatik veri çekme YOKTUR.** Bu entegrasyon, MSB Şehit
+> Bilgi Kapısı'ndan (veya başka bir kaynaktan) veriyi **otomatik olarak
+> çekmez**; böyle bir kamuya açık API şu an mevcut değildir. Google
+> E-Tablosuna girilecek her satırı, kaynağını kendiniz doğrulayarak elle
+> girmeniz gerekir. Apps Script'in tek işi, sizin elle girdiğiniz
+> tabloyu sitenin okuyabileceği bir JSON biçiminde yayınlamaktır.
+
 ## Güvenlik modeli (önemli)
 
 - Bu entegrasyonda **hiçbir şifre, API anahtarı veya hesap bilgisi** site
@@ -16,26 +23,40 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
   `Code.gs` sadece `doGet` tanımlar, `doPost` yoktur. Veri girişi/düzenleme
   her zaman Google Sheets'in kendi arayüzünde, tablo sahibinin Google
   hesabıyla giriş yapmasıyla yapılır.
-- Yalnızca "Dogrulama Durumu" sütununda **"Doğrulandı"** yazan satırlar
-  dışa aktarılır; taslak/şüpheli satırlar siteye hiçbir zaman ulaşmaz.
+- "Doğrulama Durumu" sütununu eklerseniz, yalnızca **"Doğrulandı"**
+  (veya "Evet") yazan satırlar dışa aktarılır; bu sütunu eklemezseniz,
+  tablodaki tüm dolu satırlar zaten elle doğruladığınız varsayılarak
+  aktarılır (bkz. aşağıdaki 3. adım).
 
 ## Kurulum adımları
 
 1. Yeni bir Google E-Tablosu oluşturun (veya mevcut birini kullanın).
-2. İlk sayfanın adını **`Sehitler`** yapın.
-3. İlk satıra şu başlıkları aynı sırayla yazın:
+2. İlk sayfanın adını **`Şehitler`** yapın (aksansız `Sehitler` de kabul
+   edilir, script her ikisini de tanır).
+3. İlk satıra şu başlıkları yazın (sıraları önemli değildir):
 
-   | Ad Soyad | Sehadet Tarihi | Memleket | Donem | Dogrulama Durumu |
+   | Ad Soyad | Şehadet Tarihi | Memleket | Dönem | Doğrulama Durumu |
    |---|---|---|---|---|
 
+   İlk üç sütun **zorunludur**. Son iki sütun **isteğe bağlıdır**:
+
+   - **Ad Soyad / Şehadet Tarihi / Memleket** — her satırda dolu
+     olmalıdır; herhangi biri boşsa o satır otomatik olarak atlanır.
    - **Memleket** sütununa yalnızca `../data/iller.json` içindeki 81 il
-     adından birini yazın (yazım hatası olursa site o satırı normal
-     gösterir ama il sayaçlarında eşleşmeyebilir).
-   - **Donem** sütunu isteğe bağlıdır; tarihsel/güncel kayıt gruplarını
-     ayırt etmek için kullanılır (örn. "Güncel Dönem").
-   - **Dogrulama Durumu** sütununa yalnızca kaynağını doğruladığınız
-     kayıtlar için tam olarak `Doğrulandı` yazın; diğer her değer
-     (boş, "Taslak", "Kontrol Ediliyor" vb.) o satırı siteden gizler.
+     adından birini **birebir aynı yazımla** yazın; eşleşmeyen bir il adı
+     o satırı siteden tamamen gizler (yazım hatalarının sessizce il
+     sayaçlarını bozmasını önlemek için kasıtlı bir davranıştır).
+   - **Şehadet Tarihi** `GG.AA.YYYY`, `GG/AA/YYYY` veya `YYYY-AA-GG`
+     biçiminde olabilir (ya da hücreyi Sheets'te tarih biçiminde
+     bırakabilirsiniz) — script otomatik olarak `GG.AA.YYYY`'ye çevirir.
+   - **Dönem** isteğe bağlıdır; tarihsel/güncel kayıt gruplarını ayırt
+     etmek için kullanılır (örn. "Güncel Dönem").
+   - **Doğrulama Durumu** isteğe bağlıdır. Eklerseniz, yalnızca kaynağını
+     doğruladığınız kayıtlar için tam olarak `Doğrulandı` (veya `Evet`)
+     yazın; diğer her değer (boş, "Taslak", "Kontrol Ediliyor" vb.) o
+     satırı siteden gizler. **Bu sütunu hiç eklemezseniz, tablodaki tüm
+     dolu satırlar doğrudan siteye yansır** — bu yüzden sütunu eklemediyseniz
+     tabloya yalnızca zaten doğruladığınız kayıtları girin.
 
 4. Üstteki menüden **Uzantılar → Apps Script** açın.
 5. Açılan projede `Code.gs` dosyasının içeriğini bu klasördeki
@@ -64,7 +85,7 @@ yöntemini kullanabilirsiniz (bkz. ana `../README.md`).
 
 ## Veriyi güncelleme
 
-Tabloya yeni bir satır eklemek veya "Dogrulama Durumu"nu "Doğrulandı"
+Tabloya yeni bir satır eklemek veya "Doğrulama Durumu"nu "Doğrulandı"
 yapmak, siteye **anında** (sayfa yenilendiğinde) yansır — hiçbir kod
 değişikliği veya yeniden dağıtım gerekmez.
 
@@ -75,3 +96,12 @@ değişikliği veya yeniden dağıtım gerekmez.
   yerel dosyasına döner — bu yüzden site asla tamamen bozulmaz.
 - "Yetkisiz" hatası alıyorsanız 6. adımdaki erişim ayarının **Herkes**
   olduğunu doğrulayın.
+- Apps Script uç noktasını tarayıcıda doğrudan açıp JSON çıktısını
+  inceleyebilirsiniz; `hata` alanı doluysa (örn. "'Şehitler' adlı bir
+  sayfa bulunamadı" veya "Zorunlu sütun(lar) bulunamadı: ...") mesaj
+  neyin eksik olduğunu doğrudan söyler.
+- Bir satır beklediğiniz halde listede görünmüyorsa en sık nedenler:
+  Memleket sütunundaki il adının `data/iller.json`'daki yazımla birebir
+  eşleşmemesi, Şehadet Tarihi'nin tanınan üç biçimden birinde olmaması
+  veya (sütun eklediyseniz) Doğrulama Durumu'nun tam olarak "Doğrulandı"
+  yazmaması.

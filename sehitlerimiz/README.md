@@ -65,27 +65,43 @@ fonksiyonuyla garanti altına alınır.
 
 ## Veriyi bağlama — iki yöntem
 
+> **Otomatik MSB aktarımı yoktur.** MSB Şehit Bilgi Kapısı şu an kamuya
+> açık bir veri/API servisi sunmamaktadır. Aşağıdaki iki yöntemin ikisi
+> de **elle doğrulama** esasına dayanır — hiçbir script, MSB'nin
+> sitesinden otomatik olarak veri kazımaz veya çekmez. Siz (veya
+> güvendiğiniz biri) her kaydı MSB Şehit Bilgi Kapısı'ndan (ya da başka
+> güvenilir bir kaynaktan) kontrol edip Sheets'e/CSV'ye girersiniz;
+> entegrasyonun işi yalnızca bu elle girilen veriyi siteye taşımaktır.
+
 ### 1) Google Sheets + Apps Script (canlı, önerilen)
 
 `apps-script/README.md` dosyasındaki adım adım rehberi izleyin. Özet:
-Google Sheets'e doğrulanmış kayıtları girersiniz, Apps Script bunu
-salt-okunur bir JSON uç noktası olarak yayınlar, `js/config.js` içindeki
-`apiUrl` alanına bu adresi yapıştırırsınız. **Hiçbir hesap şifresi veya
-gizli anahtar koda girmez** — uç nokta sadece "Doğrulandı" işaretli
-satırları dışa aktarır ve yazmaya kapalıdır.
+Google Sheets'e doğrulanmış kayıtları girersiniz (sütunlar: **Ad Soyad,
+Şehadet Tarihi, Memleket** — zorunlu; Dönem, Doğrulama Durumu —
+isteğe bağlı), Apps Script bunu salt-okunur bir JSON uç noktası olarak
+yayınlar, `js/config.js` içindeki `apiUrl` alanına bu adresi
+yapıştırırsınız. **Hiçbir hesap şifresi veya gizli anahtar koda
+girmez** ve uç nokta yazmaya tamamen kapalıdır.
 
 ### 2) CSV/Excel içe aktarma (bağlantısız, basit)
 
-Gerçek verinin otomatik aktarımı mümkün olmadığında kullanın:
+Google Sheets kurmak istemeyenler için:
 
 1. Excel/Google Sheets dosyanızı **CSV (UTF-8)** olarak dışa aktarın;
-   sütunlar: `ad_soyad, sehadet_tarihi, memleket, donem, dogrulama`
-   (bkz. `data/sehitler.ornek_sablon.csv`).
-2. `memleket` sütununa yalnızca `data/iller.json` içindeki 81 il adından
-   birini yazın.
-3. `dogrulama` sütununa yalnızca kaynağını doğruladığınız satırlar için
-   `evet` veya `Doğrulandı` yazın; diğer her şey o satırı dışarıda bırakır.
-4. Dönüştürün:
+   başlıklar: **Ad Soyad, Şehadet Tarihi, Memleket** (zorunlu) ve
+   isteğe bağlı olarak **Dönem, Doğrulama Durumu**
+   (bkz. `data/sehitler.ornek_sablon.csv`). Başlıklarda büyük/küçük
+   harf, Türkçe karakter veya boşluk/alt çizgi farkı sorun değildir —
+   araç bunları otomatik tanır.
+2. **Memleket** sütununa yalnızca `data/iller.json` içindeki 81 il
+   adından birini, birebir aynı yazımla girin.
+3. **Şehadet Tarihi** için `GG.AA.YYYY`, `GG/AA/YYYY` veya `YYYY-AA-GG`
+   biçimlerinden birini kullanın.
+4. **Doğrulama Durumu** sütununu eklerseniz, yalnızca kaynağını
+   doğruladığınız satırlar için `Doğrulandı` veya `Evet` yazın; bu
+   sütunu hiç eklemezseniz CSV'deki tüm dolu satırlar zaten elle
+   doğruladığınız varsayılarak içe aktarılır.
+5. Dönüştürün:
 
    ```bash
    cd sehitlerimiz/tools
@@ -94,14 +110,17 @@ Gerçek verinin otomatik aktarımı mümkün olmadığında kullanın:
      --kapsam "Güncel Dönem"
    ```
 
-   Araç, geçersiz il adlarını, hatalı tarih biçimlerini ve
+   Araç, geçersiz il adlarını, tanınmayan tarih biçimlerini, boş
+   zorunlu alanları (Ad Soyad/Şehadet Tarihi/Memleket) ve
    doğrulanmamış satırları **otomatik olarak atlar** ve hangi satırın
    neden atlandığını ekrana yazar — bu yüzden `data/sehitler.json`
    dosyasına yalnızca doğrulanmış, tutarlı kayıtlar girer.
-5. `git diff data/sehitler.json` ile değişikliği gözden geçirip commit edin.
+6. `git diff data/sehitler.json` ile değişikliği gözden geçirip commit edin.
 
-Script bu ortamda test edilmiştir (geçerli/geçersiz il, geçersiz tarih,
-doğrulanmamış satır senaryolarıyla) ve beklenen şekilde filtreliyor.
+Araç bu ortamda kapsamlı test edilmiştir: Türkçe karakterli isim/il
+değerleri (ör. "Şükrü Yıldız", "Şanlıurfa"), üç tarih biçimi, boş/eksik
+alanlar, geçersiz il adları, doğrulanmamış satırlar ve "Doğrulama
+Durumu" sütunu hiç olmayan CSV'ler — hepsi beklenen şekilde işlendi.
 
 ## Yerelde çalıştırma / test etme
 
@@ -164,16 +183,18 @@ otomatik güncel okunur).
 
 ## Kapsam ve veri bütünlüğü ilkeleri
 
-- Sitede yalnızca **doğrulanmış** (`dogrulama = Doğrulandı`) kayıtlar
-  gösterilir; taslak/şüpheli satırlar hem Apps Script hem CSV aracı
-  tarafından otomatik olarak filtrelenir.
+- Sitede yalnızca **doğrulanmış** kayıtlar gösterilir: "Doğrulama
+  Durumu" sütunu eklenmişse yalnızca `Doğrulandı`/`Evet` satırları,
+  eklenmemişse tablodaki tüm satırlar (zaten elle doğrulanmış kabul
+  edilerek) dışa aktarılır — taslak/şüpheli satırlar (sütun varsa) hem
+  Apps Script hem CSV aracı tarafından otomatik olarak filtrelenir.
 - Gerçek veri bağlanana kadar site hiçbir sayıyı "0" veya gerçekmiş gibi
   göstermez; açık bir "Veri Bekleniyor" durumu sunar.
 - Tarihsel dönem kayıtları (örn. 1853–1928 dönemi, Kıbrıs Barış Harekâtı)
   ile güncel döneme ait kayıtlar aynı listede karıştırılmamalıdır; farklı
   dönemlere ait verileri içe aktarırken `--kapsam` parametresiyle (veya
-  Sheets'teki `Donem` sütunuyla) etiketleyin ve mümkünse ayrı içe
-  aktarımlar olarak yönetin.
+  Sheets'teki/CSV'deki `Dönem` sütunuyla) etiketleyin ve mümkünse ayrı
+  içe aktarımlar olarak yönetin.
 - Birincil ve resmî kaynak her zaman **MSB Şehit Bilgi Kapısı**'dır; bu
   site onun yerine geçmez, yalnızca elle doğrulanmış bir alt kümesini
   sade bir arayüzde sunar.

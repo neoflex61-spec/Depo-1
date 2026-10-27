@@ -7,21 +7,33 @@ Google Sheets/Apps Script entegrasyonunu kullanmak istemeyenler için:
 elle doğrulanmış kayıtları bir CSV dosyasından sitenin okuduğu
 data/sehitler.json formatına dönüştürür.
 
-Girdi CSV sütunları (başlık satırı zorunlu, bu adlarla, bu sırayla
-olması gerekmez ama bu adlar aranır):
-    ad_soyad, sehadet_tarihi, memleket, donem, dogrulama
+NOT: Bu araç MSB Şehit Bilgi Kapısı'ndan OTOMATİK veri çekmez (böyle
+bir kamuya açık API bulunmamaktadır). CSV'ye girilecek her satır,
+kaynağı sizin tarafınızdan elle doğrulanmış olmalıdır.
 
-- "memleket" değeri data/iller.json içindeki 81 il adından biri
+Girdi CSV başlıkları (büyük/küçük harf, Türkçe karakter, boşluk/alt
+çizgi farkları önemli değildir — "Ad Soyad", "ad_soyad", "AD SOYAD"
+hepsi aynı sütun olarak tanınır):
+
+    ZORUNLU : Ad Soyad | Şehadet Tarihi | Memleket
+    OPSİYONEL: Dönem | Doğrulama Durumu
+
+- "Memleket" değeri, data/iller.json içindeki 81 il adından biri
   OLMALIDIR; değilse satır atlanır ve uyarı yazılır (yazım hatalarının
-  sessizce veriye girmesini önler).
-- "dogrulama" sütunu tam olarak "evet", "doğrulandı" veya "dogrulandi"
-  (büyük/küçük harf duyarsız) DEĞİLSE satır dışa aktarılmaz. Böylece
-  sadece elle doğrulanmış kayıtlar siteye ulaşır.
-- "sehadet_tarihi" GG.AA.YYYY veya YYYY-AA-GG biçiminde olmalıdır.
+  sessizce veriye girip il sayaçlarını bozmasını önler).
+- "Doğrulama Durumu" sütunu eklerseniz, yalnızca "Doğrulandı" / "Evet"
+  (büyük/küçük harf duyarsız) yazan satırlar dışa aktarılır. Bu sütunu
+  HİÇ eklemezseniz, CSV'deki tüm dolu satırlar zaten elle doğruladığınız
+  varsayılarak aktarılır — bu yüzden CSV'ye yalnızca kaynağını
+  doğruladığınız kayıtları girin.
+- "Şehadet Tarihi" GG.AA.YYYY, GG/AA/YYYY veya YYYY-AA-GG biçiminde
+  olmalıdır.
+- Ad Soyad, Şehadet Tarihi veya Memleket boş olan satırlar her zaman
+  atlanır.
 
 Kullanım:
     python3 csv_to_json.py girdi.csv \\
-        --kaynak "Elle doğrulanmış CSV içe aktarımı" \\
+        --kaynak "MSB Şehit Bilgi Kapısı'ndan elle doğrulanmış içe aktarım" \\
         --kapsam "Güncel Dönem" \\
         --cikti ../data/sehitler.json
 """
@@ -36,10 +48,37 @@ from pathlib import Path
 
 TARIH_DESENLERI = [
     (re.compile(r"^\d{2}\.\d{2}\.\d{4}$"), "%d.%m.%Y"),
+    (re.compile(r"^\d{2}/\d{2}/\d{4}$"), "%d/%m/%Y"),
     (re.compile(r"^\d{4}-\d{2}-\d{2}$"), "%Y-%m-%d"),
 ]
 
-DOGRULANMIS_DEGERLER = {"evet", "doğrulandı", "dogrulandi", "e", "true"}
+DOGRULANMIS_DEGERLER = {"dogrulandi", "evet", "e", "true"}
+
+AD_SOYAD_ADAYLARI = {"adsoyad"}
+TARIH_ADAYLARI = {"sehadettarihi"}
+MEMLEKET_ADAYLARI = {"memleket"}
+DONEM_ADAYLARI = {"donem"}
+DOGRULAMA_ADAYLARI = {"dogrulamadurumu", "dogrulama"}
+
+
+def sadelestir(s: str) -> str:
+    """Türkçe karakter/boşluk/alt çizgi/büyük-küçük harf farklarını yok sayar.
+    Örn: "Şehadet Tarihi", "sehadet_tarihi", "ŞEHADET TARİHİ" -> "sehadettarihi"
+    """
+    s = (s or "").strip()
+    s = s.replace("İ", "i").replace("I", "i").replace("ı", "i")
+    s = s.lower()
+    for a, b in (("ş", "s"), ("ğ", "g"), ("ç", "c"), ("ö", "o"), ("ü", "u")):
+        s = s.replace(a, b)
+    s = s.replace(" ", "").replace("_", "")
+    return s
+
+
+def sutun_bul(normalize_harita, adaylar):
+    for aday in adaylar:
+        if aday in normalize_harita:
+            return normalize_harita[aday]
+    return None
 
 
 def il_listesini_yukle(betik_dizini: Path):
@@ -50,7 +89,9 @@ def il_listesini_yukle(betik_dizini: Path):
 
 
 def tarihi_dogrula_ve_bicimle(deger: str):
-    deger = deger.strip()
+    deger = (deger or "").strip()
+    if not deger:
+        return None
     for desen, fmt in TARIH_DESENLERI:
         if desen.match(deger):
             try:
@@ -82,28 +123,65 @@ def main():
 
     with open(args.girdi_csv, "r", encoding="utf-8-sig", newline="") as f:
         okuyucu = csv.DictReader(f)
-        gerekli = {"ad_soyad", "sehadet_tarihi", "memleket", "dogrulama"}
-        eksik = gerekli - set(okuyucu.fieldnames or [])
+        baslik_sutunlari = okuyucu.fieldnames or []
+        normalize_harita = {sadelestir(h): h for h in baslik_sutunlari}
+
+        ad_sutun = sutun_bul(normalize_harita, AD_SOYAD_ADAYLARI)
+        tarih_sutun = sutun_bul(normalize_harita, TARIH_ADAYLARI)
+        memleket_sutun = sutun_bul(normalize_harita, MEMLEKET_ADAYLARI)
+        donem_sutun = sutun_bul(normalize_harita, DONEM_ADAYLARI)
+        dogrulama_sutun = sutun_bul(normalize_harita, DOGRULAMA_ADAYLARI)
+
+        eksik = []
+        if ad_sutun is None:
+            eksik.append("Ad Soyad")
+        if tarih_sutun is None:
+            eksik.append("Şehadet Tarihi")
+        if memleket_sutun is None:
+            eksik.append("Memleket")
         if eksik:
-            print(f"HATA: CSV'de şu sütunlar eksik: {', '.join(sorted(eksik))}", file=sys.stderr)
+            print(f"HATA: CSV'de şu zorunlu sütunlar bulunamadı: {', '.join(eksik)}", file=sys.stderr)
             sys.exit(1)
 
+        if dogrulama_sutun is None:
+            print(
+                "UYARI: 'Doğrulama Durumu' sütunu bulunamadı — CSV'deki tüm dolu "
+                "satırlar zaten elle doğruladığınız varsayılarak içe aktarılacak.",
+                file=sys.stderr,
+            )
+
         for satir_no, satir in enumerate(okuyucu, start=2):
-            ad = (satir.get("ad_soyad") or "").strip()
-            il = (satir.get("memleket") or "").strip()
-            tarih_ham = (satir.get("sehadet_tarihi") or "").strip()
-            donem = (satir.get("donem") or "").strip() or None
-            dogrulama = (satir.get("dogrulama") or "").strip().lower()
+            ad = (satir.get(ad_sutun) or "").strip()
+            il = (satir.get(memleket_sutun) or "").strip()
+            tarih_ham = (satir.get(tarih_sutun) or "").strip()
+            donem = (satir.get(donem_sutun) or "").strip() if donem_sutun else ""
+            donem = donem or None
+
+            # Tamamen boş bir satırsa (ör. CSV'deki boş bir satır) sessizce atla.
+            if not ad and not il and not tarih_ham:
+                continue
 
             if not ad:
-                print(f"UYARI: Satır {satir_no} atlandı — ad_soyad boş.", file=sys.stderr)
+                print(f"UYARI: Satır {satir_no} atlandı — Ad Soyad boş.", file=sys.stderr)
                 atlanan += 1
                 continue
 
-            if dogrulama not in DOGRULANMIS_DEGERLER:
-                print(f"UYARI: Satır {satir_no} atlandı — '{ad}' doğrulanmamış (dogrulama='{dogrulama}').", file=sys.stderr)
+            if not il:
+                print(f"UYARI: Satır {satir_no} atlandı — '{ad}' için Memleket boş.", file=sys.stderr)
                 atlanan += 1
                 continue
+
+            if not tarih_ham:
+                print(f"UYARI: Satır {satir_no} atlandı — '{ad}' için Şehadet Tarihi boş.", file=sys.stderr)
+                atlanan += 1
+                continue
+
+            if dogrulama_sutun is not None:
+                dogrulama = sadelestir(satir.get(dogrulama_sutun) or "")
+                if dogrulama not in DOGRULANMIS_DEGERLER:
+                    print(f"UYARI: Satır {satir_no} atlandı — '{ad}' doğrulanmamış (Doğrulama Durumu='{satir.get(dogrulama_sutun)}').", file=sys.stderr)
+                    atlanan += 1
+                    continue
 
             if il not in gecerli_iller:
                 print(f"UYARI: Satır {satir_no} atlandı — '{il}' geçerli bir il adı değil (satır: '{ad}').", file=sys.stderr)
@@ -112,7 +190,7 @@ def main():
 
             tarih = tarihi_dogrula_ve_bicimle(tarih_ham)
             if tarih is None:
-                print(f"UYARI: Satır {satir_no} atlandı — tarih biçimi geçersiz: '{tarih_ham}' (satır: '{ad}').", file=sys.stderr)
+                print(f"UYARI: Satır {satir_no} atlandı — tarih biçimi tanınamadı: '{tarih_ham}' (satır: '{ad}'). Beklenen: GG.AA.YYYY, GG/AA/YYYY veya YYYY-AA-GG.", file=sys.stderr)
                 atlanan += 1
                 continue
 

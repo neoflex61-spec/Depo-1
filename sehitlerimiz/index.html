@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ŞEHİTLERİMİZ — Doğrulanmış Şehit Kayıtları</title>
+<meta name="description" content="Türkiye'deki şehitlerin il bazında doğrulanmış kayıtlarını listeleyen, saygı amaçlı bağımsız bir dizin.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <h1 class="site-title">ŞEHİTLERİMİZ</h1>
+    <p class="site-subtitle">Doğrulanmış Şehit Kayıtları Dizini</p>
+  </div>
+  <div class="accent-bar" aria-hidden="true"></div>
+</header>
+
+<main class="wrap">
+
+  <section id="durum-banner" class="pending-banner" hidden>
+    <strong>Veri Bekleniyor.</strong>
+    <span>Bu dizine henüz doğrulanmış bir kayıt kaynağı bağlanmadı. Sayılar ve liste, veri bağlanana kadar görüntülenmeyecektir.</span>
+  </section>
+
+  <section class="stats-section" aria-label="Toplam kayıt istatistiği">
+    <div class="stat-card" id="toplam-kart">
+      <span class="stat-value" id="toplam-deger">—</span>
+      <span class="stat-label">Toplam Doğrulanmış Şehit Kaydı</span>
+    </div>
+  </section>
+
+  <section class="filters-section" aria-label="Arama ve filtreleme">
+    <div class="filter-row">
+      <label for="arama-input" class="sr-only">İsme göre ara</label>
+      <input type="search" id="arama-input" placeholder="Ad Soyad ile ara…" autocomplete="off">
+
+      <label for="il-select" class="sr-only">İl filtrele</label>
+      <select id="il-select">
+        <option value="">Tüm İller</option>
+      </select>
+    </div>
+    <p class="sonuc-sayaci" id="sonuc-sayaci"></p>
+  </section>
+
+  <section class="iller-section" aria-label="İl bazında kayıt sayıları">
+    <h2>İl Bazında Kayıt Sayıları <span class="muted">(81 İl)</span></h2>
+    <div class="il-grid" id="il-grid"></div>
+  </section>
+
+  <section class="liste-section" aria-label="Şehit kayıtları listesi">
+    <h2>Kayıtlar</h2>
+    <div id="liste-durum" class="liste-durum"></div>
+    <ul class="kayit-liste" id="kayit-liste"></ul>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="kapsam-uyarisi">
+      <strong>Kapsam uyarısı:</strong> Bu dizin, yalnızca kaynağı ve dönemi
+      açıkça belirtilmiş, doğrulanmış kayıtları listeler. Tarihsel savaş
+      dönemi kayıtları (örn. Çanakkale, Millî Mücadele, Kıbrıs Barış Harekâtı)
+      ile güncel döneme ait kayıtlar ayrı kapsamlar olarak kabul edilir ve
+      birbirine karıştırılmadan, her veri grubunun kendi dönem etiketiyle
+      sunulması esastır.
+    </p>
+    <p class="kaynak-bilgisi" id="kaynak-bilgisi">
+      Veri kaynağı: <span id="kaynak-adi">—</span> ·
+      Son güncelleme: <span id="son-guncelleme">—</span>
+    </p>
+    <p class="resmi-degil-uyarisi">
+      Bu site T.C. Millî Savunma Bakanlığı'nın resmî bir servisi değildir;
+      bağımsız, saygı amaçlı bir dizin projesidir. Resmî ve birincil kaynak
+      için <strong>MSB Şehit Bilgi Kapısı</strong>'nı (e-Devlet üzerinden
+      erişilebilir) esas alınız.
+    </p>
+    <p class="anma">Vatanımız için canlarını feda eden şehitlerimizi minnetle ve rahmetle anıyoruz.</p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
